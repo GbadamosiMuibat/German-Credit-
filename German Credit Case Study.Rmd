@@ -1,0 +1,445 @@
+
+---
+title: "German Credit Case Study"
+author: "Gbadamosi Muibat Asabi"
+date: "`r Sys.Date()`"
+---
+
+# Problem statement:
+
+## Context: 
+A decision rule for loan approval is necessary to avoid losses for banks. The goal is to create a prediction model that will help the bank determine whether to offer a loan to a prospective applicant based on their demographic and socioeconomic profiles.Each item in the dataset represents a person who accepts credit from a bank and is rated as a good(1) or bad(0) credit risk based on the characteristics.
+
+## Objective
+The objective is to create a prediction model that can identify potential loan applications as excellent or bad credit risks.
+
+# Libraries Used
+The following are the libraries used in the datasets
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(caret)
+library(readr)
+library(rmarkdown)
+library(corrplot)
+library(caTools)
+
+```
+
+# Loading the dataset
+```{r}
+credit_data <- read_csv("C:/Users/user/Documents/German_Credit (1).csv")
+
+```
+# Dataset Description
+The dataset contains the following attributes: They are four(4) Numeric variables and six(6) character variables. Totally,they are 1000 columns and 10 rows
+
+- **Age**: Age in years (Numeric)
+
+- **Sex**: Gender of the applicant (Categories: male, female)
+
+- **Job**: Job status (Categories: unskilled and non-resident, unskilled and resident, skilled, highly skilled)
+
+- **Housing**: Housing status (Categories: own, rent, free)
+
+- **Saving accounts**: Status of savings accounts (Categories: little, moderate, quite rich, rich)
+
+- **Checking account**: Status of checking accounts (Categories: little, moderate, rich)
+
+- **Credit amount**: Amount of credit in Deutsche Mark (Numeric)
+
+- **Duration**: Duration for which the credit is given in months (Numeric)
+
+- **Purpose**: Purpose of the credit (Categories: car, furniture/equipment, radio/TV, domestic appliances, repairs, education, business, vacation/others)
+
+- **Risk**: Credit risk (0 - Not at risk, 1 - At risk/defaulter)
+
+# Structure of the data
+```{r}
+str(credit_data)
+```
+
+#Summary of the Dataset
+```{r}
+summary(credit_data)
+```
+
+
+
+
+# Check for missing values
+No missing value was found.
+```{r}
+#Check for missing values
+sum(is.na(credit_data))
+```
+
+
+
+
+
+# EDA(Exploratory Data Analysis)
+The EDA is to explore the distribution of categorical and Continuous variables in the dataset and their relationship with the target variable `Risk`.
+
+# Categorial Variables
+The categorical variables includes the Sex,Job,Housing,Savingaccount,Checkingaccount,Purpose.
+
+## Sex distribution
+
+```{r}
+# Count and proportion of each category in Sex
+table(credit_data$Sex)
+prop.table(table(credit_data$Sex))
+```
+
+```{r}
+# Barplot for Sex
+ggplot(credit_data, aes(x=Sex)) +
+  geom_bar(fill="lightgreen") +
+  labs(title="Distribution of Sex", x="Sex", y="Count") +
+  theme_minimal()
+```
+
+```{r}
+# Count plot of Sex vs Risk
+ggplot(credit_data, aes(x = Sex, fill = Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Distribution of Risk by Sex", x = "Sex", y = "Count") +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+```{r}
+# Chi-square test for Sex and Risk
+chisq_test_sex <- chisq.test(table(credit_data$Sex, credit_data$Risk))
+print(chisq_test_sex)
+```
+
+## Job distribution
+```{r}
+# Count and proportion of each category in Job
+table(credit_data$Job)
+prop.table(table(credit_data$Job))
+```
+
+```{r}
+# Barplot for Job
+ggplot(credit_data, aes(x=Job)) +
+  geom_bar(fill="lightgreen") +
+  labs(title="Distribution of Job", x="Job", y="Count") +
+  theme_minimal()
+
+```
+
+```{r}
+# Barplot for Job
+ggplot(credit_data, aes(x = Job, fill = Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Distribution of Risk by Job", x = "Job", y = "Count") +
+  scale_fill_manual(values = c("blue", "red"))
+
+```
+
+## Housing Distribution
+
+```{r}
+# Count and proportion of each category in Housing
+table(credit_data$Housing)
+prop.table(table(credit_data$Housing))
+```
+
+```{r}
+# Barplot for Housing
+
+ggplot(credit_data, aes(x=Housing)) +
+  geom_bar(fill="lightcoral") +
+  labs(title="Distribution of Housing", x="Housing", y="Count") +
+  theme_minimal()
+```
+
+```{r}
+# Count plot of Housing vs Risk
+ggplot(credit_data, aes(x = Housing, fill = Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Distribution of Risk by Housing", x = "Housing", y = "Count") +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+
+##Saving Distribution
+
+```{r}
+# Count and proportion of each category in Housing
+table(credit_data$`Saving accounts`)
+prop.table(table(credit_data$`Saving accounts`))
+```
+
+```{r}
+# Barplot for Housing
+
+ggplot(credit_data, aes(x=`Saving accounts`)) +
+  geom_bar(fill="lightcoral") +
+  labs(title="Distribution of Saving account", x="Saving account", y="Count") +
+  theme_minimal()
+```
+
+```{r}
+# Count plot of Saving Accounts vs Risk
+ggplot(credit_data, aes(x =`Saving accounts`, fill = Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Distribution of Risk by Saving Accounts", x = "Saving Accounts", y = "Count") +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+## Checking account Distribution
+
+```{r}
+# Count and proportion of each category in Checking account
+table(credit_data$`Checking account`)
+prop.table(table(credit_data$`Checking account`))
+```
+
+```{r}
+# Barplot for checking account
+
+ggplot(credit_data, aes(x=`Checking account`)) +
+  geom_bar(fill="lightcoral") +
+  labs(title="Distribution of Checking account", x="Checking account", y="Count") +
+  theme_minimal()
+```
+
+```{r}
+# Count plot of Checking Account vs Risk
+ggplot(credit_data, aes(x = `Checking account`, fill = Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Distribution of Risk by Checking Account", x = "Checking Account", y = "Count") +
+  scale_fill_manual(values = c("blue", "red"))
+```
+
+##Purpose Distribution
+
+```{r}
+# Count and proportion of each category in Purpose
+table(credit_data$Purpose)
+prop.table(table(credit_data$Purpose))
+
+```
+
+```{r}
+# Barplot for Purpose
+
+ggplot(credit_data, aes(x=Purpose)) +
+  geom_bar(fill="lightcoral") +
+  labs(title="Distribution of Purpose", x="Purpose", y="Count") +
+  theme_minimal()
+
+```
+
+```{r}
+# Count plot of Purpose vs Risk
+ggplot(credit_data, aes(x = Purpose, fill = Risk)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Distribution of Risk by Purpose", x = "Purpose", y = "Count") +
+  scale_fill_manual(values = c("blue", "red")) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+# Continuous Variables
+The continuous variables includes the Age,Duration,Creditamount
+## Age Distribution
+```{r}
+# Histogram of Age
+ggplot(credit_data, aes(x=Age)) +
+  geom_histogram(binwidth=5, fill="steelblue", color="black") +
+  labs(title="Distribution of Age", x="Age (years)", y="Count") +
+  theme_minimal()
+```
+
+```{r}
+# Boxplot of Age by Risk
+ggplot(credit_data, aes(x=Risk, y=Age, fill=Risk)) +
+  geom_boxplot() +
+  labs(title="Age vs Risk", x="Risk", y="Age (years)") +
+  theme_minimal()
+
+```
+
+##  Credit Amount Distribution
+```{r}
+# Histogram of Credit Amount
+ggplot(credit_data, aes(x=`Credit amount`)) +
+  geom_histogram(binwidth=1000, fill="lightgreen", color="black") +
+  labs(title="Distribution of Credit Amount", x="Credit Amount (DM)", y="Count") +
+  theme_minimal()
+```
+
+
+```{r}
+# Boxplot of Credit Amount by Risk
+ggplot(credit_data, aes(x=Risk, y=`Credit amount`, fill=Risk)) +
+  geom_boxplot() +
+  labs(title="Credit amount vs Risk", x="Risk", y="Credit amount(years)") +
+  theme_minimal()
+
+```
+##  Duration Distribution
+
+This shows that people at risk of defaulting (1) generally have longer credit durations than those not at risk (0). The median duration for defaulters is around 30 months, while for non-defaulters, it's 18-20 months. Therefore the longer credit durations,the higher risk of default.
+```{r}
+# Histogram of Duration
+ggplot(credit_data, aes(x=Duration)) +
+  geom_histogram(binwidth=6, fill="coral", color="black") +
+  labs(title="Distribution of Duration", x="Duration (months)", y="Count") +
+  theme_minimal()
+
+```
+
+```{r}
+# Boxplot of Duration by Risk
+ggplot(credit_data, aes(x=Risk, y=Duration, fill=Risk)) +
+  geom_boxplot() +
+  labs(title="Duration vs Risk", x="Risk", y="Duration (months)") +
+  theme_minimal()
+
+```
+# Heatmap of continuous variables
+Heatmaps are typically used for numerical data to visualize correlations or intensities.The figures shows that there is a moderate correlation at 0.62, indicating a stronger positive relationship. As the Credit amount increases, the Duration tends to increase as well. while Age has little to no correlation with the other two variables.
+```{r}
+# Correlation matrix
+continuous_vars <-credit_data[ c("Age", "Credit amount", "Duration")]
+cor_matrix <- cor(continuous_vars)
+corrplot(cor_matrix, method = "color", addCoef.col = "black", 
+         tl.col = "black", number.cex = 0.8, cl.pos = "r", 
+         col = colorRampPalette(c("red", "white", "blue"))(200),
+         title = "Heatmap of Correlation for Continuous Variables", 
+         mar = c(0, 0, 1, 0))
+
+```
+
+# Encoding Categorical Variables
+Many machine learning algorithms require numeric inputs. Categorical variables like Sex,Job,Housing,Savingaccount,Checkingaccount,Purpose  need to be encoded into numerical format using Label encoding.
+
+```{r}
+# Convert categorical variables to factors first if they are not already
+credit_data$Sex <- as.factor(credit_data$Sex)
+credit_data$Job <- as.factor(credit_data$Job)
+credit_data$Housing <- as.factor(credit_data$Housing)
+credit_data$Saving.accounts <- as.factor(credit_data$`Saving accounts`)
+credit_data$Checking.account <- as.factor(credit_data$`Checking account`)
+credit_data$Purpose <- as.factor(credit_data$Purpose)
+credit_data$Risk <- as.factor(credit_data$Risk)
+
+
+
+# Label encode the factors (convert to integers)
+credit_data$Sex_encoded <- as.numeric(credit_data$Sex)
+credit_data$Job_encoded <- as.numeric(credit_data$Job)
+credit_data$Housing_encoded <- as.numeric(credit_data$Housing)
+credit_data$Saving_accounts_encoded <- as.numeric(credit_data$`Saving accounts`)
+credit_data$Checking_account_encoded <- as.numeric(credit_data$`Checking account`)
+credit_data$Purpose_encoded <- as.numeric(credit_data$Purpose)
+credit_data$Risk_encoded <- as.numeric(credit_data$Risk)
+
+```
+
+```{r}
+str(credit_data)
+
+```
+
+
+# Standardizing/Normalizing Continuous Variables
+For models like Logistic Regression and Neural Networks, it's important to standardize or normalize continuous variables like Age, Credit.amount, and Duration.
+
+```{r}
+# Scaling numeric variables (standardization)
+credit_data$Age <- scale(credit_data$Age)
+credit_data$Credit.amount <- scale(credit_data$`Credit amount` )
+credit_data$Duration <- scale(credit_data$Duration)
+
+```
+
+```{r}
+str(credit_data)
+
+```
+
+# Standardizing/Normalizing Continuous Variables
+For models like Logistic Regression and Neural Networks, it's important to standardize or normalize continuous variables like Age, Credit.amount, and Duration.
+
+
+```{r}
+# Scaling numeric variables (standardization)
+credit_data$Age <- scale(credit_data$Age)
+credit_data$Credit.amount <- scale(credit_data$`Credit amount` )
+credit_data$Duration <- scale(credit_data$Duration)
+```
+
+# Traning and Testing datasets
+The datasets is splited into Training and Testing in the ratio of 90 - 10.
+```{r}
+# spliting the data
+set.seed(234)
+train_indices <- sample(seq_len(nrow(credit_data)), size = 0.9 * nrow(credit_data))
+train_data <- credit_data[train_indices, ]
+test_data <- credit_data[-train_indices, ]
+```
+
+```{r}
+# train data
+nrow(train_data)
+```
+
+```{r}
+# test data
+nrow(test_data)
+```
+
+# Model Choices
+There are several models for binary classification(i.e risk as 0 or 1) but i will be using Logistics regression and random forest
+
+#Logistic Regression Model
+```{r}
+# Check the unique values in the Risk variable
+unique(train_data$Risk)
+
+
+# If Risk is a factor with levels "Good" and "Bad", convert it to 0 and 1
+train_data$Risk <- as.factor(train_data$Risk)
+test_data$Risk <- as.factor(test_data$Risk)
+
+
+# You may need to convert it to binary numeric values (0 or 1) for logistic regression
+train_data$Risk <- ifelse(train_data$Risk == "Good", 0, 1)
+test_data$Risk <- ifelse(test_data$Risk == "Good", 0, 1)
+
+```
+
+```{r}
+logistic_model <- glm(Risk ~  Saving.accounts + Checking.account + Credit.amount + Duration + Purpose, 
+                      data = train_data, 
+                      family = binomial,
+                      control = list(maxit = 100))
+```
+
+```{r}
+# Summary of the model
+summary(logistic_model)
+```
+
+```{r}
+# Predict on test set
+predicted_probs <- predict(logistic_model, test_data, type = "response")
+predicted_classes <- ifelse(predicted_probs > 0.5, 1, 0)
+```
+
+```{r}
+table(train_data$Risk, train_data$Sex)
+table(train_data$Risk, train_data$Job)
+table(train_data$Risk, train_data$Housing)
+
+table(train_data$Risk, train_data$`Saving accounts`)
+table(train_data$Risk, train_data$`Checking account`)
+
+```
